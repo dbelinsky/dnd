@@ -73,3 +73,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 window.drag = drag;
 window.allowDrop = allowDrop;
+window.drop = drop;

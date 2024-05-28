@@ -35,13 +35,13 @@ addCardButtons.forEach((button) => {
 
 function drag(event) {
   dragged = event.target;
-  event.dataTransfer.setData("text", event.target.innerHTML);
+  event.dataTransfer.setData('text', event.target.innerHTML);
   event.target.style.cursor = 'grabbing';
 }
 
 function drop(event) {
   event.preventDefault();
-  const data = event.dataTransfer.getData("text");
+  const data = event.dataTransfer.getData('text');
   const newCard = document.createElement('div');
   newCard.classList.add('list__item');
   newCard.setAttribute('draggable', 'true');
@@ -58,7 +58,7 @@ function drop(event) {
       }
     } else {
       event.currentTarget.querySelector('.list').appendChild(newCard);
-    }   
+    }
     dragged.remove();
   }
   event.target.style.cursor = 'grab';

@@ -6,6 +6,7 @@
      "jest": true
   },
   "rules": {
+    "no-param-reassign": 0,
     "no-plusplus": "off",
     "class-methods-use-this": "off",
     "no-restricted-syntax": [

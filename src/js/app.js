@@ -1,38 +1,5 @@
 let dragged;
 
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('delete-card')) {
-        event.target.parentElement.remove();
-    }
-});
-
-const showFormButtons = document.querySelectorAll('.show-form');
-showFormButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const form = this.previousElementSibling;
-        form.style.display = 'flex';
-        this.style.display = 'none';
-    });
-});
-
-const addCardButtons = document.querySelectorAll('.add-card');
-addCardButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const input = this.parentElement.querySelector('input');
-        const cardText = input.value;
-        const list = this.parentElement.previousElementSibling;
-        const newCard = document.createElement('div');
-        newCard.classList.add('list__item');
-        newCard.innerHTML = cardText + ' <span class="delete-card">&#xE951;</span>';
-        list.appendChild(newCard);
-        input.value = '';
-        this.parentElement.style.display = 'none';
-        this.parentElement.nextElementSibling.style.display = 'block';
-        newCard.setAttribute('draggable', 'true');
-        newCard.setAttribute('ondragstart', 'drag(event)');
-    });
-});
-
 function allowDrop(event) {
     event.preventDefault();
 }
@@ -69,3 +36,36 @@ function drop(event) {
     
     event.target.style.cursor = 'grab';
 }
+
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-card')) {
+        event.target.parentElement.remove();
+    }
+});
+
+const showFormButtons = document.querySelectorAll('.show-form');
+showFormButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const form = this.previousElementSibling;
+        form.style.display = 'flex';
+        this.style.display = 'none';
+    });
+});
+
+const addCardButtons = document.querySelectorAll('.add-card');
+addCardButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const input = this.parentElement.querySelector('input');
+        const cardText = input.value;
+        const list = this.parentElement.previousElementSibling;
+        const newCard = document.createElement('div');
+        newCard.classList.add('list__item');
+        newCard.innerHTML = cardText + ' <span class="delete-card">&#xE951;</span>';
+        list.appendChild(newCard);
+        input.value = '';
+        this.parentElement.style.display = 'none';
+        this.parentElement.nextElementSibling.style.display = 'block';
+        newCard.setAttribute('draggable', 'true');
+        newCard.setAttribute('ondragstart', 'drag(event)');
+    });
+});

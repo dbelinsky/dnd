@@ -16,7 +16,7 @@ function drop(event) {
     var newCard = document.createElement('div');
     newCard.classList.add('list__item');
     newCard.setAttribute('draggable', 'true');
-    newCard.setAttribute('ondragstart', 'drag(event)');
+    newCard.addEventListener('dragstart', drag);
     newCard.innerHTML = data;
 
     if (dragged !== newCard) {
@@ -66,6 +66,6 @@ addCardButtons.forEach(button => {
         this.parentElement.style.display = 'none';
         this.parentElement.nextElementSibling.style.display = 'block';
         newCard.setAttribute('draggable', 'true');
-        newCard.setAttribute('ondragstart', 'drag(event)');
+        newCard.addEventListener('dragstart', drag);
     });
 });

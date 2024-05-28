@@ -72,3 +72,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 window.drag = drag;
+window.allowDrop = allowDrop;

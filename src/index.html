@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Columns Layout</title>
+</head>
+<body>
+
+<div class="colums">
+    <div class="column" id="column1" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <span>TODO</span>
+        <div class="list">
+            <div class="list__item" draggable="true" ondragstart="drag(event)">11111 <span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">222222<span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">333333<span class="delete-card">&times;</span></div>
+        </div>
+        <div class="form">
+            <input type="text" placeholder="Enter card text">
+            <button class="add-card">Add Card</button>
+        </div>
+        <button class="show-form"><span>&#43;</span>Add another card</button>
+    </div>
+    <div class="column" id="column2" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <span>IN PROGRESS</span>
+        <div class="list">
+            <div class="list__item" draggable="true" ondragstart="drag(event)">444444<span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">5555555<span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">6666666<span class="delete-card">&times;</span></div>
+        </div>
+        <div class="form">
+            <input type="text" placeholder="Enter card text">
+            <button class="add-card">Add Card</button>
+        </div>
+        <button class="show-form"><span>&#43;</span>Add another card</button>
+    </div>
+    <div class="column" id="column3" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <span>DONE</span>
+        <div class="list">
+            <div class="list__item" draggable="true" ondragstart="drag(event)">7777777<span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">888888<span class="delete-card">&times;</span></div>
+            <div class="list__item" draggable="true" ondragstart="drag(event)">999999<span class="delete-card">&times;</span></div>
+        </div>
+        <div class="form">
+            <input type="text" placeholder="Enter card text">
+            <button class="add-card">Add Card</button>
+        </div>
+        <button class="show-form"><span>&#43;</span>Add another card</button>
+    </div>
+</div>
+
+</body>
+</html>

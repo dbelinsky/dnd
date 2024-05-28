@@ -8,7 +8,7 @@ document.addEventListener('click', function(event) {
 
 const showFormButtons = document.querySelectorAll('.show-form');
 showFormButtons.forEach(button => {
-    button.addEventListener('click', function() {
+  button.addEventListener('click', function() {
     const form = this.previousElementSibling;
     form.style.display = 'flex';
     this.style.display = 'none';
@@ -54,18 +54,16 @@ function drop(event) {
     
   if (dragged !== newCard) {
     if (event.target.classList.contains('list__item')) {
-        const rect = event.target.getBoundingClientRect();
-        if (event.clientY < rect.top + rect.height / 2) {
-            event.target.insertAdjacentElement('beforebegin', newCard);
-        } else {
-            event.target.insertAdjacentElement('afterend', newCard);
-        }
+    const rect = event.target.getBoundingClientRect();
+    if (event.clientY < rect.top + rect.height / 2) {
+        event.target.insertAdjacentElement('beforebegin', newCard);
     } else {
-          event.currentTarget.querySelector('.list').appendChild(newCard);
+        event.target.insertAdjacentElement('afterend', newCard);
     }
-        
+    } else {
+        event.currentTarget.querySelector('.list').appendChild(newCard);
+    }  
     dragged.remove();
   }
-    
   event.target.style.cursor = 'grab';
 }

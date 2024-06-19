@@ -17,6 +17,11 @@ body {
 
 .list {
   margin-top: 20px;
+  height: fit-content !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+
 }
 .form {
     display: none;
@@ -56,9 +61,10 @@ input {
   padding: 10px;
   background: #f5deb3;
   border-radius: 10px;
-  margin-bottom: 20px;
   justify-content: space-between;
   cursor: grab;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .delete-card{

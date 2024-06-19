@@ -2,6 +2,19 @@ let dragged;
 
 function allowDrop(event) {
     event.preventDefault();
+    if (event.target.classList.contains('list__item')) {
+        const rect = event.target.getBoundingClientRect();
+        const isBefore = event.clientY < rect.top + rect.height / 2;
+        const spaceHeight = 20;
+
+        if (isBefore) {
+            event.target.style.marginTop = spaceHeight + 'px';
+            event.target.style.marginBottom = '0';
+        } else {
+            event.target.style.marginTop = '0';
+            event.target.style.marginBottom = spaceHeight + 'px';
+        }
+    }
 }
 
 function drag(event) {
@@ -22,55 +35,58 @@ function drop(event) {
     if (dragged !== newCard) {
         if (event.target.classList.contains('list__item')) {
             const rect = event.target.getBoundingClientRect();
-            if (event.clientY < rect.top + rect.height / 2) {
+            const isBefore = event.clientY < rect.top + rect.height / 2;
+            if (isBefore) {
                 event.target.insertAdjacentElement('beforebegin', newCard);
             } else {
                 event.target.insertAdjacentElement('afterend', newCard);
             }
         } else {
-            event.currentTarget.querySelector('.list').appendChild(newCard);
+            const list = event.target.closest('.list');
+            if (list) {
+                const cardHeight = dragged.offsetHeight;
+                const cardsBelow = Array.from(list.children).filter(card => card.offsetTop > dragged.offsetTop);
+                const insertIndex = cardsBelow.length > 0 ? list.children.length - cardsBelow.length : list.children.length;
+                list.insertBefore(newCard, list.children[insertIndex]);
+                list.style.height = list.offsetHeight + cardHeight + 'px';
+            }
         }
         
         dragged.remove();
     }
     
     event.target.style.cursor = 'grab';
+    event.target.style.marginTop = '0';
+    event.target.style.marginBottom = '0';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('delete-card')) {
-            event.target.parentElement.remove();
-        }
-    });
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete-card')) {
+        event.target.parentElement.remove();
+    }
 
-    const showFormButtons = document.querySelectorAll('.show-form');
-    showFormButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.previousElementSibling;
-            form.style.display = 'flex';
-            this.style.display = 'none';
-        });
-    });
+    if (event.target.classList.contains('show-form')) {
+        const form = event.target.previousElementSibling;
+        form.style.display = 'flex';
+        event.target.style.display = 'none';
+    }
 
-    const addCardButtons = document.querySelectorAll('.add-card');
-    addCardButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('input');
-            const cardText = input.value;
-            const list = this.parentElement.previousElementSibling;
-            const newCard = document.createElement('div');
-            newCard.classList.add('list__item');
-            newCard.innerHTML = cardText + ' <span class="delete-card">&#xE951;</span>';
-            list.appendChild(newCard);
-            input.value = '';
-            this.parentElement.style.display = 'none';
-            this.parentElement.nextElementSibling.style.display = 'block';
-            newCard.setAttribute('draggable', 'true');
-            newCard.addEventListener('dragstart', drag);
-        });
-    });
+    if (event.target.classList.contains('add-card')) {
+        const input = event.target.parentElement.querySelector('input');
+        const cardText = input.value;
+        const list = event.target.parentElement.previousElementSibling;
+        const newCard = document.createElement('div');
+        newCard.classList.add('list__item');
+        newCard.innerHTML = cardText + ' <span class="delete-card">X</span>';
+        list.append(newCard);
+        input.value = '';
+        event.target.parentElement.style.display = 'none';
+        event.target.parentElement.nextElementSibling.style.display = 'block';
+        newCard.setAttribute('draggable', 'true');
+        newCard.addEventListener('dragstart', drag);
+    }
 });
+
 window.drag = drag;
 window.allowDrop = allowDrop;
 window.drop = drop;

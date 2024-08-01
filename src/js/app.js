@@ -1,246 +1,164 @@
-let dragged;
-let draggedCopy;
+import Board from "./board.js";
 
-function drag(event) {
-    dragged = event.target;
-    draggedCopy = dragged.cloneNode(true);
-    draggedCopy.style.opacity = '0.5';
-    draggedCopy.style.position = 'absolute';
-    draggedCopy.style.pointerEvents = 'none';
-    draggedCopy.style.top = '-9999px';
-    draggedCopy.style.left = '-9999px';
-    document.body.appendChild(draggedCopy);
-    event.dataTransfer.setData("text", event.target.innerHTML);
-    event.target.style.cursor = 'grabbing';
+class Trello {
+  constructor() {
+    this.card = undefined;
+    this.cardParent = undefined;
+    this.columns = document.querySelector(".column");
+    this.cards = document.querySelectorAll(".card");
+    this.table = {
+      todo: new Board(document.querySelector(".todo")),
+      inprogress: new Board(document.querySelector(".inprogress")),
+      done: new Board(document.querySelector(".done")),
+    };
+  }
+
+  drag() {
+    const main = document.querySelector(".table");
+    let elemBelow = "";
+    let lastCard = "";
+    let dragCardSize = "";
+    let dragCard = "";
+
+    main.addEventListener("dragenter", (e) => {
+      if (e.target.classList.contains("column")) {
+        e.target.classList.add("drop");
+      }
+    });
+
+    main.addEventListener("dragleave", (e) => {
+      if (e.target.classList.contains("drop")) {
+        e.target.classList.remove("drop");
+      }
+    });
+
+    main.addEventListener("dragstart", (e) => {
+      if (e.target.classList.contains("card")) {
+        e.dataTransfer.setData("text/plain", e.target.id);
+        dragCardSize = e.target.offsetHeight;
+        dragCard = e.target;
+        setTimeout(() => {
+          dragCard.classList.add("fog");
+        }, 0);
+      }
+    });
+
+    main.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      elemBelow = e.target;
+      if (elemBelow.classList.contains("card")) {
+        if (elemBelow.id != lastCard.id && lastCard != "") {
+          lastCard.style.marginTop = "20px";
+        }
+        lastCard = e.target;
+        elemBelow.style.marginTop = `${dragCardSize + 10}px`;
+      }
+    });
+
+    main.addEventListener("drop", (e) => {
+      dragCard.classList.remove("fog");
+      const card = main.querySelector(
+        `[id="${e.dataTransfer.getData("text/plain")}"]`
+      );
+      if (elemBelow === card) {
+        return;
+      }
+      if (elemBelow.classList.contains("card")) {
+        const center =
+          elemBelow.getBoundingClientRect().y +
+          elemBelow.getBoundingClientRect().height / 2;
+        if (e.clientY > center) {
+          if (elemBelow.nextElementSibling !== null) {
+            elemBelow = elemBelow.nextElementSibling;
+          } else {
+            return;
+          }
+        }
+        elemBelow.parentElement.insertBefore(card, elemBelow);
+      }
+      if (e.target.classList.contains("column")) {
+        if (
+          lastCard &&
+          elemBelow.classList[1] == lastCard.parentElement.classList[1]
+        ) {
+          lastCard.parentElement.insertBefore(card, lastCard);
+          card.style.marginTop = "20px";
+          lastCard.style.marginTop = "20px";
+          this.saveState();
+          this.cleanState();
+          return;
+        }
+        e.target.append(card);
+      }
+      this.saveState();
+      this.cleanState();
+    });
+  }
+
+  listener() {
+    this.drag();
+    document.addEventListener("click", (e) => {
+      if (e.target.className == "footer") {
+        this.table[e.target.parentElement.classList[1]].showAddBlock();
+      }
+      if (e.target.className == "cross") {
+        const parent = e.target.parentElement.parentElement.classList[1];
+        this.table[parent].delCard(e.target.parentElement);
+      }
+    });
+    document.addEventListener("mouseover", (e) => {
+      if (e.target.classList[0] == "card") {
+        let cross = e.target.querySelector(".cross");
+        cross.classList.remove("fog");
+        cross = "";
+      }
+    });
+    document.addEventListener("mouseout", (e) => {
+      if (e.target.classList[0] == "card") {
+        let cross = e.target.querySelector(".cross");
+        setTimeout(() => {
+          cross.classList.add("fog");
+          cross = "";
+        }, 1200);
+      }
+    });
+  }
+
+  localStateRead() {
+    if (localStorage.length == 0) {
+      return;
+    } else {
+      for (let key in localStorage) {
+        if (localStorage.getItem(key) != null) {
+          this.restoreState(key, localStorage.getItem(key));
+        }
+      }
+    }
+  }
+
+  restoreState(key, value) {
+    const values = JSON.parse(value);
+    for (let jkey in values) {
+      this.table[key].createCard(jkey, values[jkey]);
+    }
+  }
+
+  cleanState() {
+    const allCards = document.querySelectorAll(".card");
+    for (let card of allCards) {
+      card.remove();
+    }
+    this.localStateRead();
+  }
+
+  saveState() {
+    for (let column of Object.keys(this.table)) {
+      this.table[column].saveState();
+    }
+  }
 }
 
-function allowDrop(event) {
-    event.preventDefault();
-    if (event.target.classList.contains('list__item')) {
-        const rect = event.target.getBoundingClientRect();
-        const isBefore = event.clientY < rect.top + rect.height / 2;
-        const spaceHeight = 20;
+const listener = new Trello();
 
-        if (isBefore) {
-            event.target.style.marginTop = spaceHeight + 'px';
-            event.target.style.marginBottom = '0';
-        } else {
-            event.target.style.marginTop = '0';
-            event.target.style.marginBottom = spaceHeight + 'px';
-        }
-    } else if (event.target.classList.contains('list')) {
-        const list = event.target;
-        const cards = list.querySelectorAll('.list__item');
-        const mouseY = event.clientY;
-        let closestCard = null;
-        let closestDistance = Infinity;
-
-        cards.forEach(card => {
-            const rect = card.getBoundingClientRect();
-            const cardTop = rect.top;
-            const cardBottom = rect.bottom;
-            const cardHeight = rect.height;
-            const isBefore = mouseY < cardTop + cardHeight / 2;
-            const distance = isBefore ? mouseY - cardTop : cardBottom - mouseY;
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestCard = card;
-            }
-        });
-
-        if (closestCard) {
-            const rect = closestCard.getBoundingClientRect();
-            const isBefore = mouseY < rect.top + rect.height / 2;
-            const spaceHeight = 20;
-
-            if (isBefore) {
-                closestCard.style.marginTop = spaceHeight + 'px';
-                closestCard.style.marginBottom = '0';
-            } else {
-                closestCard.style.marginTop = '0';
-                closestCard.style.marginBottom = spaceHeight + 'px';
-            }
-        }
-    }
-}
-
-function drop(event) {
-    event.preventDefault();
-    var data = event.dataTransfer.getData("text");
-    var newCard = document.createElement('div');
-    newCard.classList.add('list__item');
-    newCard.setAttribute('draggable', 'true');
-    newCard.addEventListener('dragstart', drag);
-    newCard.innerHTML = data;
-
-    if (dragged !== newCard) {
-        if (event.target.classList.contains('list__item')) {
-            const rect = event.target.getBoundingClientRect();
-            const isBefore = event.clientY < rect.top + rect.height / 2;
-            if (isBefore) {
-                event.target.insertAdjacentElement('beforebegin', newCard);
-            } else {
-                event.target.insertAdjacentElement('afterend', newCard);
-            }
-        } else {
-            const list = event.target.closest('.list');
-            if (list) {
-                const cardHeight = dragged.offsetHeight;
-                const cardsBelow = Array.from(list.children).filter(card => card.offsetTop > dragged.offsetTop);
-                const insertIndex = cardsBelow.length > 0 ? list.children.length - cardsBelow.length : list.children.length;
-                list.insertBefore(newCard, list.children[insertIndex]);
-                list.style.height = list.offsetHeight + cardHeight + 'px';
-            }
-        }
-
-        draggedCopy.remove();
-        dragged.remove();
-    }
-
-    event.target.style.cursor = 'grab';
-    event.target.style.marginTop = '0';
-    event.target.style.marginBottom = '0';
-}
-
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('delete-card')) {
-        event.target.parentElement.remove();
-    }
-
-    if (event.target.classList.contains('show-form')) {
-        const form = event.target.previousElementSibling;
-        form.style.display = 'flex';
-        event.target.style.display = 'none';
-    }
-
-    if (event.target.classList.contains('add-card')) {
-        const input = event.target.parentElement.querySelector('input');
-        const cardText = input.value;
-        const list = event.target.parentElement.previousElementSibling;
-        const newCard = document.createElement('div');
-        newCard.classList.add('list__item');
-        newCard.innerHTML = cardText + ' <span class="delete-card">X</span>';
-        list.append(newCard);
-        input.value = '';
-        event.target.parentElement.style.display = 'none';
-        event.target.parentElement.nextElementSibling.style.display = 'block';
-        newCard.setAttribute('draggable', 'true');
-        newCard.addEventListener('dragstart', drag);
-    }
-});
-
-document.addEventListener('dragover', function(event) {
-    if (draggedCopy) {
-        const target = event.target;
-        const list = target.closest('.list');
-        const cards = list ? list.querySelectorAll('.list__item') : [];
-        const mouseY = event.clientY;
-        let closestCard = null;
-        let closestDistance = Infinity;
-
-        cards.forEach(card => {
-            const rect = card.getBoundingClientRect();
-            const cardTop = rect.top;
-            const cardBottom = rect.bottom;
-            const cardHeight = rect.height;
-            const isBefore = mouseY < cardTop + cardHeight / 2;
-            const distance = isBefore ? mouseY - cardTop : cardBottom - mouseY;
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestCard = card;
-            }
-        });
-
-        if (closestCard) {
-            const rect = closestCard.getBoundingClientRect();
-            const isBefore = mouseY < rect.top + rect.height / 2;
-            const spaceHeight = 20;
-
-            if (isBefore) {
-                closestCard.style.marginTop = spaceHeight + 'px';
-                closestCard.style.marginBottom = '0';
-            } else {
-                closestCard.style.marginTop = '0';
-                closestCard.style.marginBottom = spaceHeight + 'px';
-            }
-
-            if (target !== draggedCopy && target !== closestCard) {
-                const list = target.closest('.list');
-                const cards = list.querySelectorAll('.list__item');
-                let isCard = false;
-
-                cards.forEach(card => {
-                    if (card === target) {
-                        isCard = true;
-                    }
-                });
-
-                if (isCard) {
-                    const rect = target.getBoundingClientRect();
-                    const isBefore = mouseY < rect.top + rect.height / 2;
-                    if (isBefore) {
-                        target.insertAdjacentElement('beforebegin', draggedCopy);
-                    } else {
-                        target.insertAdjacentElement('afterend', draggedCopy);
-                    }
-                } else {
-                    const cardsBelow = Array.from(list.children).filter(card => card.offsetTop > mouseY);
-                    const insertIndex = cardsBelow.length > 0 ? list.children.length - cardsBelow.length : list.children.length;
-                    list.insertBefore(draggedCopy, list.children[insertIndex]);
-                }
-            }
-        } else {
-            if (target.classList.contains('list')) {
-                const list = target;
-                const cards = list.querySelectorAll('.list__item');
-                const mouseY = event.clientY;
-                let closestCard = null;
-                let closestDistance = Infinity;
-
-                cards.forEach(card => {
-                    const rect = card.getBoundingClientRect();
-                    const cardTop = rect.top;
-                    const cardBottom = rect.bottom;
-                    const cardHeight = rect.height;
-                    const isBefore = mouseY < cardTop + cardHeight / 2;
-                    const distance = isBefore ? mouseY - cardTop : cardBottom - mouseY;
-
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestCard = card;
-                    }
-                });
-
-                if (closestCard) {
-                    const rect = closestCard.getBoundingClientRect();
-                    const isBefore = mouseY < rect.top + rect.height / 2;
-                    const spaceHeight = 20;
-
-                    if (isBefore) {
-                        closestCard.style.marginTop = spaceHeight + 'px';
-                        closestCard.style.marginBottom = '0';
-                    } else {
-                        closestCard.style.marginTop = '0';
-                        closestCard.style.marginBottom = spaceHeight + 'px';
-                    }
-
-                    if (target !== draggedCopy && target !== closestCard) {
-                        const cardsBelow = Array.from(list.children).filter(card => card.offsetTop > mouseY);
-                        const insertIndex = cardsBelow.length > 0 ? list.children.length - cardsBelow.length : list.children.length;
-                        list.insertBefore(draggedCopy, list.children[insertIndex]);
-                    }
-                } else {
-                    if (target !== draggedCopy) {
-                        list.append(draggedCopy);
-                    }
-                }
-            }
-        }
-    }
-});
-
-window.drag = drag;
-window.allowDrop = allowDrop;
-window.drop = drop;
+listener.localStateRead();
+listener.listener();
